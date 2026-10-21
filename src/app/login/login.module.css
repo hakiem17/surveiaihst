@@ -1,0 +1,102 @@
+.wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.loginCard {
+  width: 100%;
+  max-width: 480px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  box-shadow: var(--shadow-glow);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.logoWrap {
+  margin-bottom: 6px;
+  transition: transform 0.2s ease;
+}
+
+.logoWrap:hover {
+  transform: scale(1.05);
+}
+
+.head h2 {
+  font-size: 1.45rem;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.notice {
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.noticeErr {
+  background: var(--danger-soft);
+  border: 1px solid hsla(352, 85%, 64%, 0.35);
+  color: #fca5b4;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 4px 0;
+}
+
+.divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+}
+
+.divider span {
+  position: relative;
+  background: var(--surface-solid);
+  padding: 0 12px;
+  font-size: 0.72rem;
+  color: var(--text-3);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.demoSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.foot {
+  text-align: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}

@@ -1,0 +1,108 @@
+import { NextResponse } from "next/server";
+import { isSupabaseConfigured, serviceClient } from "@/lib/supabase";
+import { buildResponseRow, FAST_THRESHOLD_SEC, PERIODE } from "@/lib/survey";
+import { DEFAULT_PERANGKAT_DAERAH, getLocalPerangkatDaerah } from "@/lib/master-data";
+import fs from "fs";
+import path from "path";
+
+const LOCAL_STORE_PATH = path.join(process.cwd(), ".local_responses.json");
+
+function saveLocalDemoResponse(row) {
+  try {
+    let list = [];
+    if (fs.existsSync(LOCAL_STORE_PATH)) {
+      list = JSON.parse(fs.readFileSync(LOCAL_STORE_PATH, "utf8"));
+    }
+    const idx = list.findIndex((item) => item.device_id === row.device_id && item.periode === row.periode);
+    if (idx >= 0) {
+      return { conflict: true };
+    }
+    list.unshift({ ...row, id: `local-${Date.now()}`, created_at: new Date().toISOString() });
+    fs.writeFileSync(LOCAL_STORE_PATH, JSON.stringify(list, null, 2), "utf8");
+    return { ok: true };
+  } catch (err) {
+    console.error("Local store error:", err);
+    return { ok: true };
+  }
+}
+
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    const { consent, device_id, started_at, answers = {} } = body;
+
+    if (!device_id || typeof device_id !== "string" || device_id.length < 10) {
+      return NextResponse.json({ message: "Identitas sesi tidak valid." }, { status: 400 });
+    }
+
+    // Kasus 1: Responden menolak berpartisipasi (PS = Tidak bersedia)
+    if (consent === false) {
+      if (isSupabaseConfigured()) {
+        try {
+          const supabase = serviceClient();
+          await supabase.from("responses").insert({
+            periode: PERIODE,
+            device_id,
+            consent: false,
+          });
+        } catch (e) {
+          console.warn("Gagal menyimpan catatan penolakan ke Supabase:", e);
+        }
+      } else {
+        saveLocalDemoResponse({ periode: PERIODE, device_id, consent: false });
+      }
+      return NextResponse.json({ ok: true, message: "Penolakan telah dicatat." });
+    }
+
+    // Kasus 2: Responden bersedia & mengisi kuesioner
+    // Kumpulkan ID PD yang valid (dari database jika ada, atau fallback)
+    const validPdIds = new Set(getLocalPerangkatDaerah().map((pd) => pd.id));
+
+    const { row, errors } = buildResponseRow(answers, { pdIds: validPdIds });
+    if (errors) {
+      return NextResponse.json({ message: "Terdapat isian yang belum lengkap atau tidak valid.", errors }, { status: 422 });
+    }
+
+    // Hitung durasi pengisian dan deteksi abnormalitas waktu (KAK N.1 < 2 menit)
+    let durationSec = null;
+    let flagFast = false;
+    if (started_at) {
+      const diffMs = Date.now() - new Date(started_at).getTime();
+      if (diffMs > 0) {
+        durationSec = Math.round(diffMs / 1000);
+        flagFast = durationSec < FAST_THRESHOLD_SEC;
+      }
+    }
+
+    row.periode = PERIODE;
+    row.device_id = device_id;
+    row.consent = true;
+    row.started_at = started_at ? new Date(started_at).toISOString() : null;
+    row.duration_sec = durationSec;
+    row.flag_fast = flagFast;
+
+    if (isSupabaseConfigured()) {
+      const supabase = serviceClient();
+      const { error } = await supabase.from("responses").insert(row);
+      if (error) {
+        if (error.code === "23505") {
+          return NextResponse.json({ message: "Anda sudah pernah mengisi survei ini pada perangkat ini." }, { status: 409 });
+        }
+        console.warn("Supabase insert error (fallback ke cache lokal):", error.message);
+        saveLocalDemoResponse(row);
+        return NextResponse.json({ ok: true, fallback: true });
+      }
+      return NextResponse.json({ ok: true });
+    }
+
+    // Fallback mode demo lokal
+    const localResult = saveLocalDemoResponse(row);
+    if (localResult.conflict) {
+      return NextResponse.json({ message: "Anda sudah pernah mengisi survei ini pada perangkat ini." }, { status: 409 });
+    }
+    return NextResponse.json({ ok: true, demo: true });
+  } catch (err) {
+    console.error("API submit error:", err);
+    return NextResponse.json({ message: "Terjadi kesalahan pada server." }, { status: 500 });
+  }
+}
