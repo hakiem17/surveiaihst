@@ -259,7 +259,10 @@ export default function SurveyForm({ perangkatDaerah, loadError }) {
       if (res.status === 422 && json.errors) {
         setErrors(json.errors);
         setSubmitError("Beberapa jawaban perlu diperiksa kembali.");
-      } else setSubmitError(json.message || "Gagal mengirim. Periksa koneksi lalu coba lagi.");
+      } else {
+        const errorDetail = json.error ? ` (${json.error})` : "";
+        setSubmitError((json.message || "Gagal mengirim. Periksa koneksi lalu coba lagi.") + errorDetail);
+      }
     } catch {
       setSubmitError("Gagal mengirim. Jawaban Anda tetap tersimpan di perangkat ini — silakan coba lagi.");
     } finally {

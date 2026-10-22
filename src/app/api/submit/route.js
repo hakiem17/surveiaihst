@@ -5,7 +5,10 @@ import { DEFAULT_PERANGKAT_DAERAH, getLocalPerangkatDaerah } from "@/lib/master-
 import fs from "fs";
 import path from "path";
 
-const LOCAL_STORE_PATH = path.join(process.cwd(), ".local_responses.json");
+const LOCAL_STORE_PATH =
+  process.env.VERCEL || process.env.NODE_ENV === "production"
+    ? path.join("/tmp", ".local_responses.json")
+    : path.join(process.cwd(), ".local_responses.json");
 
 function saveLocalDemoResponse(row) {
   try {
@@ -88,25 +91,31 @@ export async function POST(request) {
     row.flag_fast = flagFast;
 
     if (isSupabaseConfigured()) {
-      const supabase = serviceClient();
-      const { error } = await supabase.from("responses").insert(row);
-      if (error) {
-        if (error.code === "23505") {
-          return NextResponse.json({ message: "Anda sudah pernah mengisi survei ini pada perangkat ini." }, { status: 409 });
+      try {
+        const supabase = serviceClient();
+        const { error } = await supabase.from("responses").insert(row);
+        if (error) {
+          if (error.code === "23505") {
+            return NextResponse.json({ message: "Anda sudah pernah mengisi survei ini pada perangkat ini." }, { status: 409 });
+          }
+          console.warn("Supabase insert error:", error.message);
+          if (error.code === "42501") {
+            console.warn(
+              "[PERINGATAN SUPABASE] Permission denied untuk tabel responses! " +
+              "Pastikan SUPABASE_SERVICE_ROLE_KEY diisi di Environment Variables Vercel/Hosting, " +
+              "atau jalankan supabase/fix_permissions.sql di Supabase SQL Editor."
+            );
+          }
+          // Fallback simpan ke cache lokal agar data responden tidak hilang
+          saveLocalDemoResponse(row);
+          return NextResponse.json({ ok: true, fallback: true, warning: error.message });
         }
-        console.warn("Supabase insert error:", error.message);
-        if (error.code === "42501") {
-          console.warn(
-            "[PERINGATAN SUPABASE] Permission denied untuk tabel responses! " +
-            "Pastikan Anda telah menjalankan skrip supabase/fix_permissions.sql di SQL Editor Supabase, " +
-            "atau isi SUPABASE_SERVICE_ROLE_KEY di .env.local"
-          );
-        }
-        // Fallback simpan ke cache lokal agar data responden tidak hilang
+        return NextResponse.json({ ok: true });
+      } catch (dbErr) {
+        console.warn("Supabase client connection error:", dbErr.message);
         saveLocalDemoResponse(row);
-        return NextResponse.json({ ok: true, fallback: true });
+        return NextResponse.json({ ok: true, fallback: true, warning: dbErr.message });
       }
-      return NextResponse.json({ ok: true });
     }
 
     // Fallback mode demo lokal
