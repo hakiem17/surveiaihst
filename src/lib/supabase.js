@@ -3,8 +3,24 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+function sanitizeUrl(raw) {
+  if (!raw || typeof raw !== "string") return "";
+  let clean = raw.trim().replace(/^["']|["']$/g, "").trim();
+  if (clean && !clean.startsWith("http://") && !clean.startsWith("https://")) {
+    clean = `https://${clean}`;
+  }
+  return clean.replace(/\/+$/, "");
+}
+
+function sanitizeKey(raw) {
+  if (!raw || typeof raw !== "string") return "";
+  return raw.trim().replace(/^["']|["']$/g, "").trim();
+}
+
+const URL = sanitizeUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+const ANON = sanitizeKey(
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+);
 
 export const isSupabaseConfigured = () => Boolean(URL && ANON);
 
@@ -27,7 +43,8 @@ export async function serverClient() {
 
 /** Client service role — HANYA di server, untuk menyimpan jawaban setelah validasi. */
 export function serviceClient() {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || ANON;
+  const rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = sanitizeKey(rawKey) || ANON;
   if (!URL || !key) throw new Error("Supabase URL atau Key belum dikonfigurasi");
   return createClient(URL, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
