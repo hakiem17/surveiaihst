@@ -22,7 +22,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="id" className={jakarta.variable} suppressHydrationWarning>
+    <html lang="id" data-theme="dark" className={jakarta.variable} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -30,7 +30,8 @@ export default function RootLayout({ children }) {
               (function() {
                 try {
                   var saved = localStorage.getItem('surveiai-theme');
-                  var theme = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                  var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+                  var theme = saved || (prefersLight ? 'light' : 'dark');
                   document.documentElement.setAttribute('data-theme', theme);
                 } catch(e) {}
               })();

@@ -53,20 +53,21 @@
 .opts { display: grid; grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr)); gap: 10px; }
 .opt {
   position: relative; display: flex; align-items: flex-start; gap: 14px; cursor: pointer;
-  padding: 14px 16px; border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 14px 16px; border-radius: var(--radius); border: 1px solid var(--border-strong);
   background: var(--input-bg);
+  color: var(--text);
   transition: border-color 0.2s, background-color 0.2s, transform 0.2s var(--ease);
 }
-.opt:hover { border-color: var(--border-strong); background: var(--surface-2); }
+.opt:hover { border-color: var(--primary); background: var(--surface-2); }
 .opt:active { transform: scale(0.995); }
 .opt input, .scaleBtn input, .segBtn input { position: absolute; opacity: 0; pointer-events: none; }
 .opt:has(input:focus-visible), .scaleBtn:has(input:focus-visible), .segBtn:has(input:focus-visible) {
   outline: 2px solid var(--primary); outline-offset: 2px;
 }
-.optOn { border-color: var(--primary); background: var(--primary-soft); }
+.optOn { border-color: var(--primary); background: var(--primary-soft); color: var(--text); }
 .optOff { opacity: 0.4; cursor: not-allowed; }
-.optText { display: flex; flex-direction: column; gap: 3px; font-size: 0.94rem; line-height: 1.45; }
-.optText small { color: var(--text-3); font-size: 0.78rem; }
+.optText { display: flex; flex-direction: column; gap: 3px; font-size: 0.94rem; line-height: 1.45; color: var(--text); }
+.optText small { color: var(--text-2); font-size: 0.78rem; }
 .radio, .check {
   flex: none; width: 20px; height: 20px; margin-top: 1px; border: 2px solid var(--border-strong);
   transition: all 0.2s var(--ease); display: grid; place-items: center;
@@ -85,10 +86,11 @@
 .scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .scaleBtn {
   position: relative; height: 48px; display: grid; place-items: center; cursor: pointer;
-  border-radius: 12px; border: 1px solid var(--border); background: var(--input-bg);
+  border-radius: 12px; border: 1px solid var(--border-strong); background: var(--input-bg);
+  color: var(--text);
   font-weight: 700; transition: all 0.2s var(--ease);
 }
-.scaleBtn:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+.scaleBtn:hover { border-color: var(--primary); transform: translateY(-2px); }
 .scaleOn { background: var(--grad); color: var(--primary-contrast); border-color: transparent; box-shadow: 0 8px 22px -8px hsla(168, 76%, 48%, 0.7); }
 .scaleLabels { display: flex; justify-content: space-between; gap: 12px; font-size: 0.76rem; color: var(--text-3); }
 
@@ -99,13 +101,14 @@
   transition: background-color 0.2s, border-color 0.2s;
 }
 .mRowErr { border-color: hsla(352, 85%, 64%, 0.5); }
-.mLabel { font-size: 0.94rem; line-height: 1.5; }
+.mLabel { font-size: 0.94rem; line-height: 1.5; color: var(--text); }
 .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .segBtn {
   position: relative; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer;
-  border: 1px solid var(--border); background: var(--input-bg); font-weight: 600; font-size: 0.9rem; transition: all 0.2s;
+  border: 1px solid var(--border-strong); background: var(--input-bg); font-weight: 600; font-size: 0.9rem; transition: all 0.2s;
+  color: var(--text);
 }
-.segBtn:hover { border-color: var(--border-strong); }
+.segBtn:hover { border-color: var(--primary); }
 .segOn { background: var(--accent-soft); border-color: var(--accent); color: var(--badge-accent-text); }
 
 .twoCol { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
