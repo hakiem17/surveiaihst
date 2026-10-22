@@ -66,18 +66,24 @@ export async function POST(request) {
     // Hitung durasi pengisian dan deteksi abnormalitas waktu (KAK N.1 < 2 menit)
     let durationSec = null;
     let flagFast = false;
+    let startedAtIso = null;
+
     if (started_at) {
-      const diffMs = Date.now() - new Date(started_at).getTime();
-      if (diffMs > 0) {
-        durationSec = Math.round(diffMs / 1000);
-        flagFast = durationSec < FAST_THRESHOLD_SEC;
+      const startDate = new Date(started_at);
+      if (!Number.isNaN(startDate.getTime())) {
+        startedAtIso = startDate.toISOString();
+        const diffMs = Date.now() - startDate.getTime();
+        if (diffMs > 0) {
+          durationSec = Math.round(diffMs / 1000);
+          flagFast = durationSec < FAST_THRESHOLD_SEC;
+        }
       }
     }
 
     row.periode = PERIODE;
     row.device_id = device_id;
     row.consent = true;
-    row.started_at = started_at ? new Date(started_at).toISOString() : null;
+    row.started_at = startedAtIso;
     row.duration_sec = durationSec;
     row.flag_fast = flagFast;
 
@@ -88,7 +94,15 @@ export async function POST(request) {
         if (error.code === "23505") {
           return NextResponse.json({ message: "Anda sudah pernah mengisi survei ini pada perangkat ini." }, { status: 409 });
         }
-        console.warn("Supabase insert error (fallback ke cache lokal):", error.message);
+        console.warn("Supabase insert error:", error.message);
+        if (error.code === "42501") {
+          console.warn(
+            "[PERINGATAN SUPABASE] Permission denied untuk tabel responses! " +
+            "Pastikan Anda telah menjalankan skrip supabase/fix_permissions.sql di SQL Editor Supabase, " +
+            "atau isi SUPABASE_SERVICE_ROLE_KEY di .env.local"
+          );
+        }
+        // Fallback simpan ke cache lokal agar data responden tidak hilang
         saveLocalDemoResponse(row);
         return NextResponse.json({ ok: true, fallback: true });
       }
@@ -103,6 +117,12 @@ export async function POST(request) {
     return NextResponse.json({ ok: true, demo: true });
   } catch (err) {
     console.error("API submit error:", err);
-    return NextResponse.json({ message: "Terjadi kesalahan pada server." }, { status: 500 });
+    return NextResponse.json(
+      {
+        message: "Terjadi kesalahan pada server.",
+        error: err.message,
+      },
+      { status: 500 }
+    );
   }
 }
