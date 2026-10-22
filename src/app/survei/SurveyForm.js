@@ -299,20 +299,18 @@ export default function SurveyForm({ perangkatDaerah, loadError }) {
         <p className="muted">{content[2]}</p>
         <div className="row gap-2" style={{ justifyContent: "center", marginTop: 20, flexWrap: "wrap" }}>
           <Link href="/" className="btn btn-ghost">Kembali ke beranda</Link>
-          {status === "already" && (
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => {
-                localStorage.removeItem(DONE_KEY);
-                localStorage.removeItem(DRAFT_KEY);
-                localStorage.removeItem(DEVICE_KEY);
-                window.location.reload();
-              }}
-            >
-              🔄 Reset Sesi & Uji Coba Ulang
-            </button>
-          )}
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => {
+              localStorage.removeItem(DONE_KEY);
+              localStorage.removeItem(DRAFT_KEY);
+              localStorage.removeItem(DEVICE_KEY);
+              window.location.reload();
+            }}
+          >
+            🔄 Reset Sesi & Uji Coba Ulang
+          </button>
         </div>
       </div>
     );

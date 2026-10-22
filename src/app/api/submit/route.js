@@ -98,23 +98,25 @@ export async function POST(request) {
           if (error.code === "23505") {
             return NextResponse.json({ message: "Anda sudah pernah mengisi survei ini pada perangkat ini." }, { status: 409 });
           }
-          console.warn("Supabase insert error:", error.message);
-          if (error.code === "42501") {
-            console.warn(
-              "[PERINGATAN SUPABASE] Permission denied untuk tabel responses! " +
-              "Pastikan SUPABASE_SERVICE_ROLE_KEY diisi di Environment Variables Vercel/Hosting, " +
-              "atau jalankan supabase/fix_permissions.sql di Supabase SQL Editor."
-            );
-          }
-          // Fallback simpan ke cache lokal agar data responden tidak hilang
-          saveLocalDemoResponse(row);
-          return NextResponse.json({ ok: true, fallback: true, warning: error.message });
+          console.error("Supabase insert error:", error.message);
+          return NextResponse.json(
+            {
+              message: "Gagal menyimpan ke database Supabase.",
+              error: error.message,
+            },
+            { status: 500 }
+          );
         }
         return NextResponse.json({ ok: true });
       } catch (dbErr) {
-        console.warn("Supabase client connection error:", dbErr.message);
-        saveLocalDemoResponse(row);
-        return NextResponse.json({ ok: true, fallback: true, warning: dbErr.message });
+        console.error("Supabase client connection error:", dbErr.message);
+        return NextResponse.json(
+          {
+            message: "Gagal menghubungkan ke database Supabase.",
+            error: dbErr.message,
+          },
+          { status: 500 }
+        );
       }
     }
 
