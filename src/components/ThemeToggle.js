@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import styles from "./ThemeToggle.module.css";
 
 export function ThemeToggle({ className = "", compact = false }) {
   // Selalu inisialisasi dengan "dark" agar SSR dan client render awal identik (100% bebas hydration mismatch)
@@ -43,13 +44,13 @@ export function ThemeToggle({ className = "", compact = false }) {
   return (
     <button
       type="button"
-      className={`theme-toggle ${compact ? "theme-toggle-compact" : ""} ${className}`}
+      className={`${styles.toggle} ${compact ? styles.compact : ""} ${className}`}
       onClick={toggleTheme}
       title={isLight ? "Beralih ke Mode Gelap (Dark Mode)" : "Beralih ke Mode Terang (Light Mode)"}
       aria-label={isLight ? "Beralih ke Mode Gelap" : "Beralih ke Mode Terang"}
       suppressHydrationWarning
     >
-      <span className="theme-toggle-icon" aria-hidden="true">
+      <span className={styles.icon} aria-hidden="true">
         {isLight ? (
           // Bulan (Dark)
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -71,7 +72,7 @@ export function ThemeToggle({ className = "", compact = false }) {
         )}
       </span>
       {!compact && (
-        <span className="theme-toggle-text">
+        <span className={styles.label}>
           {isLight ? "Gelap" : "Terang"}
         </span>
       )}

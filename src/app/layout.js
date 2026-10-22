@@ -22,7 +22,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="id" data-theme="dark" className={jakarta.variable} suppressHydrationWarning>
+    <html lang="id" data-theme="dark" data-scroll-behavior="smooth" className={jakarta.variable} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
