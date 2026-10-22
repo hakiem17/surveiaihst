@@ -17,9 +17,11 @@ function sanitizeKey(raw) {
   return raw.trim().replace(/^["']|["']$/g, "").trim();
 }
 
-const URL = sanitizeUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+const URL = sanitizeUrl(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL);
 const ANON = sanitizeKey(
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 );
 
 export const isSupabaseConfigured = () => Boolean(URL && ANON);
