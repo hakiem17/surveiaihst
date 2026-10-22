@@ -2,6 +2,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { isSupabaseConfigured, publicClient } from "@/lib/supabase";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import SurveyForm from "./SurveyForm";
 import s from "./survei.module.css";
 
@@ -45,9 +46,12 @@ export default async function SurveiPage() {
             <small>Pemkab Hulu Sungai Tengah 2026</small>
           </span>
         </Link>
-        <span className="badge">
-          <span className="dot" /> Anonim
-        </span>
+        <div className="row gap-2">
+          <ThemeToggle />
+          <span className="badge">
+            <span className="dot" /> Anonim
+          </span>
+        </div>
       </header>
       <main className={s.main}>
         <h1 className="sr-only">Kuesioner Survei Pemanfaatan AI Pemkab HST 2026</h1>

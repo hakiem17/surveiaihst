@@ -2,8 +2,9 @@
 .nav {
   position: sticky; top: 0; z-index: 50;
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  background: rgba(7, 11, 22, 0.65);
+  background: var(--nav-bg);
   border-bottom: 1px solid var(--border);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 .navInner { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 70px; }
 .brand { display: flex; align-items: center; gap: 12px; }
@@ -96,7 +97,8 @@
 .checks { list-style: none; display: flex; flex-direction: column; gap: 12px; }
 .checks li {
   display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 12px;
-  background: rgba(7, 11, 22, 0.5); border: 1px solid var(--border); font-size: 0.93rem;
+  background: var(--surface); border: 1px solid var(--border); font-size: 0.93rem;
+  transition: background-color 0.2s, border-color 0.2s;
 }
 .checks li::before {
   content: "✓"; flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;

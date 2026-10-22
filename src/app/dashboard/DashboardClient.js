@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { computeIndices, indexCategory, labelOf, OPT } from "@/lib/survey";
 import s from "./dashboard.module.css";
 
@@ -625,6 +626,8 @@ export default function DashboardClient({ initialData }) {
                 <option value="pelaksana">3. Pelaksana</option>
               </select>
             </div>
+
+            <ThemeToggle compact />
 
             <a href="/api/export" className="btn btn-primary btn-sm" id="btn-export-csv">
               ⬇ Ekspor CSV

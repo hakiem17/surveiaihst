@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { isSupabaseConfigured, publicClient } from "@/lib/supabase";
 import { PERIODE } from "@/lib/survey";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import s from "./page.module.css";
 
 export const instant = false;
@@ -83,6 +84,7 @@ export default async function Home() {
             <a href="#faq">FAQ</a>
           </nav>
           <div className="row gap-2">
+            <ThemeToggle />
             <Link href="/login" className="btn btn-ghost btn-sm" id="nav-login">
               Dashboard
             </Link>

@@ -3,6 +3,7 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { browserClient } from "@/lib/supabase-browser";
 import s from "./login.module.css";
 
@@ -61,6 +62,11 @@ function LoginForm() {
   return (
     <div className={s.wrapper}>
       <div className={`card ${s.loginCard} fade-up`}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", marginBottom: 4 }}>
+          <Link href="/" className="small muted">← Beranda</Link>
+          <ThemeToggle compact />
+        </div>
+
         <div className={s.head}>
           <Link href="/" className={s.logoWrap}>
             <Logo size={42} />
