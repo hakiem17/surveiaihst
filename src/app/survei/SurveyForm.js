@@ -144,6 +144,172 @@ function MatrixRow({ label, children, error }) {
   );
 }
 
+/* Pencarian Perangkat Daerah ---------------------------------------- */
+
+const norm = (t = "") =>
+  t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+
+// Singkatan dari huruf awal tiap kata, mis. "Dinas Kesehatan" -> "dk"
+const initials = (t) => norm(t).split(" ").map((w) => w[0]).join("");
+
+function Highlight({ text, terms }) {
+  if (!terms.length) return text;
+  const re = new RegExp(`(${terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "ig");
+  return text.split(re).map((part, i) => (i % 2 ? <mark key={i}>{part}</mark> : part));
+}
+
+function PdPicker({ options, value, onChange, invalid }) {
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const [hi, setHi] = useState(0);
+  const inputRef = useRef(null);
+  const listRef = useRef(null);
+  const selected = options.find((o) => o.id === value);
+
+  const index = useMemo(
+    () => options.map((o) => ({ ...o, _t: norm(`${o.nama} ${o.kelompok || ""}`), _i: initials(o.nama) })),
+    [options]
+  );
+  const terms = norm(q).split(" ").filter(Boolean);
+  const filtered = terms.length
+    ? index.filter((o) => terms.every((t) => o._t.includes(t)) || (terms.length === 1 && o._i.startsWith(terms[0])))
+    : index;
+
+  const groups = filtered.reduce((acc, o) => {
+    const g = o.kelompok || "Perangkat Daerah";
+    (acc[g] ||= []).push(o);
+    return acc;
+  }, {});
+  const flat = Object.values(groups).flat();
+
+  const pick = (o) => {
+    onChange(o.id);
+    setQ("");
+    setOpen(false);
+    inputRef.current?.blur();
+  };
+
+  const openList = () => {
+    setOpen(true);
+    setHi(0);
+    // Di HP, naikkan kolom ke atas agar daftar tidak tertutup keyboard
+    if (window.matchMedia("(max-width: 640px)").matches) {
+      setTimeout(() => inputRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 250);
+    }
+  };
+
+  const onKey = (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (!open) return openList();
+      setHi((h) => Math.min(h + 1, flat.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHi((h) => Math.max(h - 1, 0));
+    } else if (e.key === "Enter") {
+      if (open && flat[hi]) {
+        e.preventDefault();
+        pick(flat[hi]);
+      }
+    } else if (e.key === "Escape") {
+      setOpen(false);
+      setQ("");
+    }
+  };
+
+  useEffect(() => {
+    listRef.current?.querySelector(`[data-idx="${hi}"]`)?.scrollIntoView({ block: "nearest" });
+  }, [hi]);
+
+  const pos = new Map(flat.map((o, i) => [o.id, i]));
+  return (
+    <div className={s.pd}>
+      <div className={`${s.pdField} ${open ? s.pdFieldOpen : ""} ${invalid ? s.pdFieldErr : ""}`}>
+        <span className={s.pdIcon} aria-hidden="true">⌕</span>
+        <input
+          ref={inputRef}
+          id="a1"
+          className={s.pdInput}
+          type="text"
+          role="combobox"
+          aria-expanded={open}
+          aria-controls="a1-list"
+          aria-autocomplete="list"
+          autoComplete="off"
+          enterKeyHint="search"
+          placeholder={selected ? selected.nama : "Ketik untuk mencari, mis. kesehatan, camat, puskesmas…"}
+          value={open ? q : selected?.nama ?? ""}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setHi(0);
+            if (!open) setOpen(true);
+          }}
+          onFocus={openList}
+          onBlur={() => setOpen(false)}
+          onKeyDown={onKey}
+        />
+        {(q || selected) && (
+          <button
+            type="button"
+            className={s.pdClear}
+            aria-label="Hapus pilihan"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              if (q) setQ("");
+              else onChange(undefined);
+              inputRef.current?.focus();
+            }}
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      {open && (
+        <div className={s.pdList} id="a1-list" role="listbox" ref={listRef} onMouseDown={(e) => e.preventDefault()}>
+          <p className={s.pdCount}>
+            {terms.length ? `${flat.length} hasil` : `${flat.length} Perangkat Daerah / unit kerja`}
+          </p>
+          {flat.length === 0 && (
+            <p className={s.pdEmpty}>
+              Tidak ditemukan untuk “{q}”. Coba kata kunci lain, mis. sebagian nama dinas atau kecamatan.
+            </p>
+          )}
+          {Object.entries(groups).map(([g, items]) => (
+            <div key={g} role="group" aria-label={g}>
+              <p className={s.pdGroup}>{g}</p>
+              {items.map((o) => {
+                const i = pos.get(o.id);
+                return (
+                  <div
+                    key={o.id}
+                    role="option"
+                    aria-selected={o.id === value}
+                    data-idx={i}
+                    className={`${s.pdOpt} ${i === hi ? s.pdOptHi : ""} ${o.id === value ? s.pdOptOn : ""}`}
+                    onMouseEnter={() => setHi(i)}
+                    onClick={() => pick(o)}
+                  >
+                    <span><Highlight text={o.nama} terms={terms} /></span>
+                    {o.id === value && <span className={s.pdTick}>✓</span>}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {selected && !open && (
+        <p className={s.pdSelected}>
+          Terpilih: <strong>{selected.nama}</strong>
+          {selected.kelompok ? <span> · {selected.kelompok}</span> : null}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Main form                                                           */
 /* ------------------------------------------------------------------ */
@@ -217,8 +383,18 @@ export default function SurveyForm({ perangkatDaerah, loadError }) {
   const go = (idx) => {
     setMeta((m) => ({ ...m, step: idx }));
     setErrors({});
-    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+
+  // Selalu kembali ke bagian paling atas SETELAH langkah/status baru selesai dirender.
+  // (Scroll sebelum render membuat posisi berhenti di tengah pada layar HP.)
+  useEffect(() => {
+    if (!ready) return;
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    const toTop = () => window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    toTop();
+    const raf = requestAnimationFrame(toTop);
+    return () => cancelAnimationFrame(raf);
+  }, [stepIdx, status, ready]);
 
   const next = () => {
     const e = validateSection(step, a);
@@ -247,7 +423,6 @@ export default function SurveyForm({ perangkatDaerah, loadError }) {
     localStorage.setItem(DONE_KEY, new Date().toISOString());
     localStorage.removeItem(DRAFT_KEY);
     setStatus(nextStatus);
-    topRef.current?.scrollIntoView({ behavior: "smooth" });
   }
 
   async function submit() {
@@ -317,11 +492,6 @@ export default function SurveyForm({ perangkatDaerah, loadError }) {
   }
 
   const m = STEP_META[step];
-  const pdGroups = perangkatDaerah.reduce((acc, pd) => {
-    const g = pd.kelompok || "Perangkat Daerah";
-    (acc[g] ||= []).push(pd);
-    return acc;
-  }, {});
   const c2Opts = [...(meta.c2Order || []).map((v) => OPT.C2.find((o) => o.v === v)), OPT.C2.find((o) => o.v === "lainnya")];
 
   return (
@@ -355,6 +525,25 @@ export default function SurveyForm({ perangkatDaerah, loadError }) {
               Pengisian sekitar 5–7 menit. Tidak ada jawaban benar atau salah, jawablah sesuai kondisi sebenarnya. Anda tetap
               dapat mengisi meskipun belum pernah menggunakan AI. Mohon isi kuesioner ini satu kali saja.
             </p>
+            <div className={s.rekomendasiBox}>
+              <div className={s.rekomendasiHeader}>
+                <span className={s.rekomendasiBadge}>Rekomendasi BPS</span>
+                <span className={s.rekomendasiTitle}>Survei Statistik Sektoral Resmi</span>
+              </div>
+              <div className={s.rekomendasiGrid}>
+                <div className={s.rekomendasiItem}>
+                  <span className={s.rekomendasiLabel}>Identitas Rekomendasi</span>
+                  <strong className={s.rekomendasiValue}>V-26.6307.002</strong>
+                </div>
+                <div className={s.rekomendasiItem}>
+                  <span className={s.rekomendasiLabel}>Tanggal Terbit</span>
+                  <strong className={s.rekomendasiValue}>21 Oktober 2026</strong>
+                </div>
+              </div>
+              <p className={s.rekomendasiNote}>
+                Kegiatan statistik sektoral ini telah memperoleh Rekomendasi Statistik dari Badan Pusat Statistik (BPS) sesuai PP No. 51 Tahun 1999 tentang Penyelenggaraan Statistik.
+              </p>
+            </div>
             <div className={s.notice}>
               <strong>Kerahasiaan.</strong> Survei ini tidak menanyakan nama, NIP, atau data pribadi lain. Jawaban Anda
               dijamin kerahasiaannya sesuai UU Nomor 16 Tahun 1997 dan UU Nomor 27 Tahun 2022, hanya dipakai untuk keperluan
@@ -387,17 +576,12 @@ export default function SurveyForm({ perangkatDaerah, loadError }) {
                   {loadError === "config" ? " (Supabase belum dikonfigurasi)" : ""}. Hubungi admin Diskominfo SP.
                 </div>
               ) : (
-                <select
-                  className="select" id="a1" value={a.a1_pd_id ?? ""}
-                  onChange={(e) => set("a1_pd_id", e.target.value ? Number(e.target.value) : undefined)}
-                >
-                  <option value="">— Pilih Perangkat Daerah / unit kerja —</option>
-                  {Object.entries(pdGroups).map(([g, items]) => (
-                    <optgroup key={g} label={g}>
-                      {items.map((pd) => <option key={pd.id} value={pd.id}>{pd.nama}</option>)}
-                    </optgroup>
-                  ))}
-                </select>
+                <PdPicker
+                  options={perangkatDaerah}
+                  value={a.a1_pd_id}
+                  onChange={(v) => set("a1_pd_id", v)}
+                  invalid={!!errors.a1_pd_id}
+                />
               )}
             </Question>
             <Question code="A2" title="Klaster jabatan Anda saat ini" hint="Bila memenuhi lebih dari satu, pilih yang paling atas." error={errors.a2}>

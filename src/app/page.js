@@ -213,6 +213,7 @@ export default async function Home() {
               </p>
             </div>
             <ul className={s.checks}>
+              <li>Telah memperoleh Rekomendasi BPS (No: V-26.6307.002, Terbit: 21 Oktober 2026)</li>
               <li>Tidak menanyakan nama, NIP, NIK, atau kontak pribadi</li>
               <li>Hanya hasil agregat yang dipublikasikan</li>
               <li>Sel tabel &lt; 5 responden disamarkan atau digabung</li>
@@ -259,7 +260,7 @@ export default async function Home() {
               <p className="small faint">Kabupaten Hulu Sungai Tengah · Jalan Perintis Kemerdekaan</p>
             </div>
           </div>
-          <p className="small faint">Statistik Sektoral · Satu Data HST · © {PERIODE}</p>
+          <p className="small faint">Statistik Sektoral · Satu Data HST · Rekomendasi BPS: V-26.6307.002 · © {PERIODE}</p>
         </div>
       </footer>
     </>

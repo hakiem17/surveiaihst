@@ -33,7 +33,73 @@
   transition: all 0.2s ease;
 }
 .noticeWarn { background: var(--warn-soft); border-color: hsla(38, 95%, 60%, 0.3); color: var(--notice-warn-text); }
+.rekomendasiBox {
+  display: flex; flex-direction: column; gap: 10px; padding: 14px 18px; border-radius: var(--radius);
+  background: var(--surface-2); border: 1px solid var(--border-strong); border-left: 4px solid var(--primary);
+}
+.rekomendasiHeader { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rekomendasiBadge {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  padding: 3px 8px; border-radius: 6px; background: var(--accent-soft); color: var(--badge-accent-text);
+  border: 1px solid var(--border-strong);
+}
+.rekomendasiTitle { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+.rekomendasiGrid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 16px;
+  background: var(--input-bg); padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+}
+.rekomendasiItem { display: flex; flex-direction: column; gap: 2px; }
+.rekomendasiLabel { font-size: 0.72rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+.rekomendasiValue { font-size: 0.95rem; font-weight: 700; color: var(--text); font-family: var(--font-mono, monospace), system-ui; letter-spacing: 0.02em; }
+.rekomendasiNote { font-size: 0.8rem; color: var(--text-2); line-height: 1.45; margin: 0; }
 .consentRow { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+
+/* searchable perangkat daerah */
+.pd { position: relative; display: flex; flex-direction: column; gap: 8px; scroll-margin-top: 16px; }
+.pdField {
+  display: flex; align-items: center; gap: 10px; padding: 0 12px 0 14px; min-height: 52px;
+  border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--input-bg);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.pdField:hover { border-color: var(--primary); }
+.pdFieldOpen { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); }
+.pdFieldErr { border-color: var(--danger); }
+.pdIcon { font-size: 1.25rem; color: var(--text-3); line-height: 1; }
+.pdInput {
+  flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text);
+  font: inherit; font-size: 1rem; padding: 14px 0;
+}
+.pdInput::placeholder { color: var(--text-3); }
+.pdFieldOpen .pdInput::placeholder { color: var(--text-2); }
+.pdClear {
+  flex: none; width: 30px; height: 30px; border-radius: 50%; border: 0; cursor: pointer;
+  background: var(--surface-2); color: var(--text-2); font-size: 0.8rem; display: grid; place-items: center;
+}
+.pdClear:hover { background: var(--danger-soft); color: var(--danger); }
+.pdList {
+  position: absolute; top: 58px; left: 0; right: 0; z-index: 30; max-height: min(340px, 55vh); overflow-y: auto;
+  padding: 6px; border-radius: var(--radius); border: 1px solid var(--border-strong);
+  background: var(--modal-bg); box-shadow: var(--shadow); backdrop-filter: blur(14px);
+  overscroll-behavior: contain; animation: pdIn 0.18s var(--ease);
+}
+@keyframes pdIn { from { opacity: 0; transform: translateY(-4px); } }
+.pdCount { font-size: 0.72rem; color: var(--text-3); padding: 6px 10px 2px; }
+.pdGroup {
+  position: sticky; top: -6px; z-index: 1; padding: 8px 10px 6px; font-size: 0.7rem; font-weight: 800;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--badge-accent-text); background: var(--modal-bg);
+}
+.pdOpt {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer;
+  padding: 11px 12px; border-radius: 10px; font-size: 0.94rem; line-height: 1.4; color: var(--text);
+}
+.pdOptHi { background: var(--surface-2); }
+.pdOptOn { background: var(--primary-soft); font-weight: 600; }
+.pdOpt mark { background: hsla(48, 100%, 60%, 0.35); color: inherit; border-radius: 3px; padding: 0 1px; }
+.pdTick { color: var(--primary); font-weight: 900; }
+.pdEmpty { padding: 16px 12px; font-size: 0.88rem; color: var(--text-2); }
+.pdSelected { font-size: 0.82rem; color: var(--text-2); }
+.pdSelected strong { color: var(--primary); }
+.pdSelected span { color: var(--text-3); }
 .consentRow :global(.btn) { white-space: normal; text-align: center; }
 
 /* question */
